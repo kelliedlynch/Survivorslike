@@ -3,7 +3,7 @@ using Survivorslike.Entities;
 
 namespace Survivorslike.Component;
 
-public class WeaponData(float damage, float speed, float range, WeaponFactory.WeaponMode mode)
+public class WeaponData(float damage, float speed, float range)
 {
     public float Damage { get; set; } = damage;
     public float Speed { get; set; } = speed;
@@ -20,5 +20,4 @@ public class WeaponData(float damage, float speed, float range, WeaponFactory.We
     }
 
     public float Range { get; set; } = range;
-    public WeaponFactory.WeaponMode Mode { get; set; } = mode;
 }

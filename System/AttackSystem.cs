@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended.Collections;
@@ -9,36 +10,59 @@ using NotImplementedException = System.NotImplementedException;
 
 namespace Survivorslike.System;
 
-public class AttackSystem() : EntityUpdateSystem(Aspect.All(typeof(Targeter)))
+public class AttackSystem() : EntityUpdateSystem(Aspect.All(typeof(Arsenal)))
 {
+    private ComponentMapper<Arsenal> _arsenalMapper;
     private ComponentMapper<Targeter> _targeterMapper;
     private ComponentMapper<WeaponData> _weaponMapper;
-    private ComponentMapper<HitBox> _hitBoxMapper;
-    private ComponentMapper<PlayerData> _playerMapper;
+    private ComponentMapper<Hitbox> _hitboxMapper;
+    private ComponentMapper<CreatureData> _playerMapper;
+    private ComponentMapper<Transform> _transformMapper;
     
     public override void Initialize(IComponentMapperService mapperService)
     {
+        _arsenalMapper = mapperService.GetMapper<Arsenal>();
         _targeterMapper = mapperService.GetMapper<Targeter>();
         _weaponMapper = mapperService.GetMapper<WeaponData>();
-        _hitBoxMapper = mapperService.GetMapper<HitBox>();
-        _playerMapper = mapperService.GetMapper<PlayerData>();
+        _hitboxMapper = mapperService.GetMapper<Hitbox>();
+        _playerMapper = mapperService.GetMapper<CreatureData>();
+        _transformMapper = mapperService.GetMapper<Transform>();
     }
 
+    private List<Hitbox> FindValidTargets(Targeter targeter)
+    {
+        if (targeter.ValidTargets == Targeter.TargetType.Other)
+        {
+            if (targeter.Self == Player.Id)
+            {
+                var playerHitBox = _hitboxMapper.Get(Player.Id);
+                var allHitboxes = _hitboxMapper.Components;
+                // var allHitboxesCount = allHitboxes.Count;
+                // var allHitboxesSize = allHitboxes.Capacity;
+                // var weaponsCount = _weaponMapper.Components.Count;
+                // var creaturesCount = _playerMapper.Components.Count;
+                // var targetersCount = _targeterMapper.Components.Count;
+                // var transformsCount = _transformMapper.Components.Count;
+                var filteredHitboxes = allHitboxes.Where(box => box is not null && playerHitBox != box);
+                return filteredHitboxes.ToList();
+            }
+        }
+
+        return new List<Hitbox>();
+    }
+
+
+    
     public override void Update(GameTime gameTime)
     {
         foreach (var entityId in ActiveEntities)
         {
-            var targeter = _targeterMapper.Get(entityId);
-            var weaponData = _weaponMapper.Get(entityId);
-            var hitBoxes = new Bag<HitBox>();
-            var playerHitBox = _hitBoxMapper.Get(Player.Id);
-            foreach (var box in _hitBoxMapper.Components.Where(box => playerHitBox != box))
+            foreach (var weaponId in _arsenalMapper.Get(entityId).Weapons)
             {
-                hitBoxes.Add(box);
+                var targeter = _targeterMapper.Get(weaponId);
+                var validTargets = FindValidTargets(targeter);
+                targeter.FindTarget(validTargets);
             }
-            var target = targeter.FindTarget(Point.Zero, hitBoxes);
-            if (target == null) continue;
-            
         }
     }
 }

@@ -1,6 +1,6 @@
 namespace Survivorslike.Component;
 
-public class PlayerData
+public class CreatureData
 {
     
 }
