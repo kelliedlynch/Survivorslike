@@ -1,44 +1,40 @@
+using System.Numerics;
+using Friflo.Engine.ECS;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using MonoGame.Extended.ECS;
 using Survivorslike.Component;
+using BoundingBox = Survivorslike.Component.BoundingBox;
+using Entity = Friflo.Engine.ECS.Entity;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace Survivorslike.Entities;
 
 public static class Player
 {
-    public static int Id { get; private set; }
     
-    public static void NewPlayer(Game game, World world)
+    public static Entity NewPlayer(Game game, EntityStore world)
     {
-        var player = world.CreateEntity();
-        var transform = new Transform(new Vector2(300), new Vector2(100));
-        player.Attach(transform);
-        player.Attach(new Sprite(game, "Graphics/warrior_solo"));
-        var velocity = new Velocity
-        {
-            MaxSpeed = 4
-        };
-        player.Attach(velocity);
-        player.Attach(new CreatureData());
-        var hitbox = new Hitbox();
-        hitbox.Transform = transform;
-        hitbox.Size = transform.Size / new Vector2(2);
-        hitbox.TransformAnchorPoint = new Vector2(transform.Size.X / 4 + 2, transform.Size.Y / 4 - 4);
-        player.Attach(hitbox);
-        // var weapon = Weapon.NewWeapon(game, world);
-        var targeter = new Targeter();
-        var weapon = world.CreateEntity(); 
-        weapon.Attach(new WeaponData(1, 3, 15));
-        weapon.Attach(targeter);
-        targeter.Origin = hitbox.Bounds.Center;
-        targeter.Self = player.Id;
-        var arsenal = new Arsenal();
-        arsenal.Weapons.Add(weapon.Id);
-        player.Attach(arsenal);
+        var player = world.CreateEntity(new UniqueEntity("Player"));
         
-        // player.Attach(new Targeter(){ Origin = transform.Bounds.Center});
+        var spriteSize = new Vector2(100, 100);
+        var position = game.GraphicsDevice.Viewport.Bounds.Center.ToVector2() - spriteSize / new Vector2(2);
+        var boundingBox = new BoundingBox(position, spriteSize);
+        player.AddComponent(boundingBox);
+
+        var velocity = new Velocity{Angle = 0f, Speed = 0f, MaxSpeed = 2.5f};
+        player.AddComponent(velocity);
+
+        var texture = game.Content.Load<Texture2D>("Graphics/warrior_solo");
+        var sprite = new Sprite(texture);
+        player.AddComponent(sprite);
         
-        Id = player.Id;
+        var hitboxRect = boundingBox.Bounds.GetRelativeRectangle(spriteSize.X / 4, spriteSize.Y / 4, spriteSize.X / 2, spriteSize.Y / 2);
+        var hitbox = new Hitbox{ Size = hitboxRect.Size };
+        player.AddComponent(hitbox);
+        
+        return player;
     }
+
 }

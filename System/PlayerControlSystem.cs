@@ -1,4 +1,6 @@
 using System.Linq;
+using Friflo.Engine.ECS;
+using Friflo.Engine.ECS.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -10,52 +12,47 @@ using NotImplementedException = System.NotImplementedException;
 
 namespace Survivorslike.System;
 
-public class PlayerControlSystem() : EntityUpdateSystem(Aspect.All(typeof(CreatureData)))
+public class PlayerControlSystem(Game game, EntityStore world) : GameComponent(game)
 {
-    private ComponentMapper<CreatureData> _playerMapper;
-    private ComponentMapper<Velocity> _velocityMapper;
-    
-    public override void Initialize(IComponentMapperService mapperService)
-    {
-        _playerMapper = mapperService.GetMapper<CreatureData>();
-        _velocityMapper = mapperService.GetMapper<Velocity>();
-    }
-
     public override void Update(GameTime gameTime)
     {
         var k = Keyboard.GetState();
 
-        var entity = Player.Id;
+        var player = world.GetUniqueEntity("Player");
+        ref var velocity = ref player.GetComponent<Velocity>();
+        var appliedSpeed = 0.25f;
+        var appliedAngle = 0f;
         var moveKeyDown = false;
         if (k.IsKeyDown(Keys.A) || k.IsKeyDown(Keys.Left))
         {
-            var velocity = _velocityMapper.Get(entity);
-            velocity.ApplyTransform(180, 0.25f);
+            appliedAngle = 180;
             moveKeyDown = true;
         } 
         if (k.IsKeyDown(Keys.D) || k.IsKeyDown(Keys.Right))
         {
-            var velocity = _velocityMapper.Get(entity);
-            velocity.ApplyTransform(0, 0.25f);
             moveKeyDown = true;
         } 
         if (k.IsKeyDown(Keys.W) || k.IsKeyDown(Keys.Up))
         {
-            var velocity = _velocityMapper.Get(entity);
-            velocity.ApplyTransform(270, 0.25f);
+            appliedAngle = 270;
             moveKeyDown = true;
         } 
         if (k.IsKeyDown(Keys.S) || k.IsKeyDown(Keys.Down))
         {
-            var velocity = _velocityMapper.Get(entity);
-            velocity.ApplyTransform(90, 0.25f);
+            appliedAngle = 90;
             moveKeyDown = true;
         }
         if(!moveKeyDown)
         {
-            var velocity = _velocityMapper.Get(entity);
             velocity.Angle = 0;
             velocity.Speed = 0;
         }
+        else
+        {
+            var appliedVel = new Velocity(appliedSpeed, appliedAngle);
+            velocity = Velocity.ApplyVelocity(velocity, appliedVel);
+        }
     }
+    
+    
 }

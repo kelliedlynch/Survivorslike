@@ -1,46 +1,59 @@
+using Friflo.Engine.ECS;
+using Friflo.Engine.ECS.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
-using MonoGame.Extended.ECS;
-using MonoGame.Extended.ECS.Systems;
 using Survivorslike.Component;
+using BoundingBox = Survivorslike.Component.BoundingBox;
+
 
 namespace Survivorslike.System;
 
-public class SpriteRenderSystem : EntityDrawSystem
+public class SpriteRenderSystem (Game game, EntityStore world) : DrawableGameComponent (game)
 {
-    private ComponentMapper<Sprite> _spriteMapper;
-    private ComponentMapper<Transform> _transformMapper;
-    private ComponentMapper<Hitbox> _hitboxMapper;
+    private readonly EntityStore _world = world;
     private SpriteBatch _spriteBatch;
     private bool ShowHitboxes = true;
-    
-    
-    public SpriteRenderSystem(GraphicsDevice graphicsDevice) : base(Aspect.All(typeof(Sprite), typeof(Transform))){
-        _spriteBatch = new SpriteBatch(graphicsDevice);
-    }
 
-    public override void Initialize(IComponentMapperService mapperService)
+    public override void Initialize()
     {
-        _spriteMapper = mapperService.GetMapper<Sprite>();
-        _transformMapper = mapperService.GetMapper<Transform>();
-        _hitboxMapper = mapperService.GetMapper<Hitbox>();
+        _spriteBatch = new SpriteBatch(GraphicsDevice);
     }
 
+    private void DrawSprite(Sprite sprite, BoundingBox box)
+    {
+        var rect = box.Bounds.ToRectangle();
+        _spriteBatch.Draw(sprite.Texture, box.Bounds.ToRectangle(), sprite.Color);
+    }
+
+    private void DrawHitbox(Hitbox hitbox, BoundingBox box)
+    {
+        var hitboxRect = CalculateAnchoredRectangle(box.Bounds, box.HitboxAnchorPoint, hitbox.Size, hitbox.AnchorPoint);
+        _spriteBatch.DrawRectangle(hitboxRect.ToRectangle(), Color.White);
+    }
+
+    private RectangleF CalculateAnchoredRectangle(RectangleF container, Vector2 anchorPosition, Vector2 size,
+        Vector2 anchorPoint)
+    {
+        var absolutePosition = container.Position + anchorPosition;
+        var anchoredPosition = absolutePosition - anchorPoint;
+        return new RectangleF(anchoredPosition.X, anchoredPosition.Y, size.X, size.Y);
+    }
+    
     public override void Draw(GameTime gameTime)
     {
+        GraphicsDevice.Clear(Color.CornflowerBlue);
+
         _spriteBatch.Begin();
-        foreach (var entity in ActiveEntities)
+        var sprites = _world.Query<Sprite, BoundingBox>();
+        sprites.ForEachEntity((ref Sprite sprite, ref BoundingBox box, Entity _) => DrawSprite(sprite, box));
+        if (ShowHitboxes)
         {
-            var transform = _transformMapper.Get(entity);
-            var sprite = _spriteMapper.Get(entity);
-            _spriteBatch.Draw(sprite.Texture, new Rectangle(transform.Position.ToPoint(), transform.Size.ToPoint()), Color.White);
-            if (ShowHitboxes)
-            {
-                var box = _hitboxMapper.Get(entity);
-                _spriteBatch.DrawRectangle(box.Bounds, Color.Red);
-            }
+            var hitboxes = _world.Query<Hitbox, BoundingBox>();
+            hitboxes.ForEachEntity((ref Hitbox box, ref BoundingBox bbox, Entity _) => DrawHitbox(box, bbox));
+            
         }
         _spriteBatch.End();
     }
+
 }

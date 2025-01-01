@@ -1,45 +1,50 @@
+using System;
+using System.Numerics;
+using Friflo.Engine.ECS.Systems;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended.ECS;
 using MonoGame.Extended.ECS.Systems;
 using Survivorslike.Component;
+using BoundingBox = Survivorslike.Component.BoundingBox;
 using NotImplementedException = System.NotImplementedException;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace Survivorslike.System;
 
-public class MovementSystem() : EntityUpdateSystem(Aspect.All(typeof(Velocity), typeof(Transform)))
+public class MovementSystem : QuerySystem<BoundingBox, Velocity>
 {
-    private ComponentMapper<Velocity> _velocityMapper;
-    private ComponentMapper<Transform> _transformMapper;
-    private ComponentMapper<Targeter> _targeterMapper;
-    private ComponentMapper<Arsenal> _arsenalMapper;
-    
-    public override void Initialize(IComponentMapperService mapperService)
+    protected override void OnUpdate()
     {
-        _velocityMapper = mapperService.GetMapper<Velocity>();
-        _transformMapper = mapperService.GetMapper<Transform>();
-        _targeterMapper = mapperService.GetMapper<Targeter>();
-        _arsenalMapper = mapperService.GetMapper<Arsenal>();
-    }
-
-    public override void Update(GameTime gameTime)
-    {
-        foreach (var entityId in ActiveEntities)
+        foreach (var entity in Query.Entities)
         {
-            var velocity = _velocityMapper.Get(entityId);
-            var transform = _transformMapper.Get(entityId);
-            transform.Position += velocity.Vector * new Vector2(gameTime.ElapsedGameTime.Milliseconds / 10f);
-            // look at weapons for this
-            var arsenal = _arsenalMapper.Get(entityId);
-            if (arsenal == null) continue;
-            foreach (var weaponId in arsenal.Weapons)
-            {
-                var targeter = _targeterMapper.Get(weaponId);
-                if (targeter != null)
-                {
-                    targeter.Origin = transform.Bounds.Center;
-                }
-            }
+            ref var box = ref entity.GetComponent<BoundingBox>();
+            var velocity = entity.GetComponent<Velocity>();
+
+            var tick = Tick.deltaTime;
+            box.Position += Velocity.VelocityToVector(velocity) * new Vector2(Tick.deltaTime / 10);
+            // if (velocity.Vector != Vector2.Zero)
+            // {
+            //     continue;
+            // }
+            var pos = box.Position;
+            // var velocity = _velocityMapper.Get(entityId);
+            // var transform = _transformMapper.Get(entityId);
+            // transform.Position += velocity.Vector * new Vector2(gameTime.ElapsedGameTime.Milliseconds / 10f);
+            // // look at weapons for this
+            // var arsenal = _arsenalMapper.Get(entityId);
+            // if (arsenal == null) continue;
+            // foreach (var weaponId in arsenal.Weapons)
+            // {
+            //     var targeter = _targeterMapper.Get(weaponId);
+            //     if (targeter != null)
+            //     {
+            //         targeter.Origin = transform.Bounds.Center;
+            //     }
+            // }
 
         }
     }
+
+
+
 }

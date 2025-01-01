@@ -1,29 +1,30 @@
 using System;
+using Friflo.Engine.ECS;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;
 
 namespace Survivorslike.Component;
 
-public class Velocity
+public struct Velocity(float speed, float angle) : IComponent
 {
-    public float Speed { get; set; } = 0;
-    public float Angle { get; set; } = 0;
-    
-    public float MaxSpeed { get; set; } = 1000;
-    
-    public Vector2 Vector => ToVector(Angle, Speed);
 
-    public void ApplyTransform(float angle, float speed)
+    public float Speed = speed;
+    public float Angle = angle;
+    public float MaxSpeed = float.MaxValue;
+ 
+    public static Velocity ApplyVelocity(Velocity vel1, Velocity vel2)
     {
-        var newVector = Vector + ToVector(angle, speed); 
-        Speed = Math.Min(float.Sqrt(float.Pow(newVector.X, 2) + float.Pow(newVector.Y, 2)), MaxSpeed);
-        Angle = MathHelper.ToDegrees((float)float.Atan2(newVector.Y, newVector.X));
+        var newVector = VelocityToVector(vel1) + VelocityToVector(vel2);
+        // NOTE: maybe vel2 MaxSpeed shouldn't be considered--do we want to limit the result by the applied velocity? If so, should it be like this?
+        var newSpeed = Math.Min(Math.Min(float.Sqrt(float.Pow(newVector.X, 2) + float.Pow(newVector.Y, 2)), vel1.MaxSpeed), vel2.MaxSpeed);
+        var newAngle = MathHelper.ToDegrees((float)float.Atan2(newVector.Y, newVector.X));
+        return new Velocity{Speed=newSpeed, Angle=newAngle, MaxSpeed = Math.Min(vel1.MaxSpeed, vel2.MaxSpeed)};
     }
 
-    private Vector2 ToVector(float angle, float speed)
+    public static Vector2 VelocityToVector(Velocity velocity)
     {
         return new Vector2(
-            (float)(speed * float.Cos(MathHelper.ToRadians(angle))), 
-            (float)(speed * float.Sin(MathHelper.ToRadians(angle))));
+            (float)(velocity.Speed * float.Cos(MathHelper.ToRadians(velocity.Angle))), 
+            (float)(velocity.Speed * float.Sin(MathHelper.ToRadians(velocity.Angle))));
     }
 }
