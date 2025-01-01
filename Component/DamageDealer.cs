@@ -11,6 +11,7 @@ public struct DamageDealer : IComponent
     public int MinHits = 1;
     public int MaxHits = 1;
     public int Damage = 1;
+    public float Cooldown = 1;
     public float PulseInterval = 0.5f;
     public float PulseDuration = 0.5f;
 

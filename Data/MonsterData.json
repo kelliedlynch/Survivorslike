@@ -1,0 +1,10 @@
+[
+  {
+    "Name" : "Big Fish",
+    "Texture" : "Boss_Big_Fish",
+    "Width" : "120",
+    "Height" : "150",
+    "HitPoints" : 100,
+    "MoveSpeed" : 1.5
+  }
+]

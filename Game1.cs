@@ -51,9 +51,7 @@ public class Game1 : Game
     {
         var player = Player.NewPlayer(this, _world);
 
-        var loc = new EntityLocation(){ Position = Vector2.One, Size = new Vector2(200, 300) };
-        var hitbox = new Hitbox() { Size = new Vector2(200, 300) };
-        var monster = _world.CreateEntity(loc, hitbox);
+        var monster = Monster.NewMonster(this, _world, 0);
         
         
         base.BeginRun();
