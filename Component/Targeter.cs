@@ -1,19 +1,21 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using Friflo.Engine.ECS;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended.Collections;
 using MonoGame.Extended.ECS;
 
 namespace Survivorslike.Component;
 
-public struct Targeter(Vector2 origin, float range)
+public struct Targeter(Vector2 origin, float range) : IComponent
 {
     public TargeterType Type = TargeterType.NearestSingle;
     public Vector2 Origin = origin;
     public float Range = range;
     public int MinTargets = 1;
     public int MaxTargets = 1;
+    public List<int> CurrentTargets = new();
 }
 
 public enum TargeterType

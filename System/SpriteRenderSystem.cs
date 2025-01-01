@@ -4,14 +4,12 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using Survivorslike.Component;
-using BoundingBox = Survivorslike.Component.BoundingBox;
 
 
 namespace Survivorslike.System;
 
 public class SpriteRenderSystem (Game game, EntityStore world) : DrawableGameComponent (game)
 {
-    private readonly EntityStore _world = world;
     private SpriteBatch _spriteBatch;
     private bool ShowHitboxes = true;
 
@@ -20,13 +18,13 @@ public class SpriteRenderSystem (Game game, EntityStore world) : DrawableGameCom
         _spriteBatch = new SpriteBatch(GraphicsDevice);
     }
 
-    private void DrawSprite(Sprite sprite, BoundingBox box)
+    private void DrawSprite(Sprite sprite, EntityLocation box)
     {
         var rect = box.Bounds.ToRectangle();
         _spriteBatch.Draw(sprite.Texture, box.Bounds.ToRectangle(), sprite.Color);
     }
 
-    private void DrawHitbox(Hitbox hitbox, BoundingBox box)
+    private void DrawHitbox(Hitbox hitbox, EntityLocation box)
     {
         var hitboxRect = CalculateAnchoredRectangle(box.Bounds, box.HitboxAnchorPoint, hitbox.Size, hitbox.AnchorPoint);
         _spriteBatch.DrawRectangle(hitboxRect.ToRectangle(), Color.White);
@@ -45,12 +43,12 @@ public class SpriteRenderSystem (Game game, EntityStore world) : DrawableGameCom
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
         _spriteBatch.Begin();
-        var sprites = _world.Query<Sprite, BoundingBox>();
-        sprites.ForEachEntity((ref Sprite sprite, ref BoundingBox box, Entity _) => DrawSprite(sprite, box));
+        var sprites = world.Query<Sprite, EntityLocation>();
+        sprites.ForEachEntity((ref Sprite sprite, ref EntityLocation box, Entity _) => DrawSprite(sprite, box));
         if (ShowHitboxes)
         {
-            var hitboxes = _world.Query<Hitbox, BoundingBox>();
-            hitboxes.ForEachEntity((ref Hitbox box, ref BoundingBox bbox, Entity _) => DrawHitbox(box, bbox));
+            var hitboxes = world.Query<Hitbox, EntityLocation>();
+            hitboxes.ForEachEntity((ref Hitbox box, ref EntityLocation bbox, Entity _) => DrawHitbox(box, bbox));
             
         }
         _spriteBatch.End();

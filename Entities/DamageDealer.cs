@@ -1,10 +1,11 @@
+using Friflo.Engine.ECS;
 using NotImplementedException = System.NotImplementedException;
 
 namespace Survivorslike.Entities;
 
-public struct Weapon
+public struct DamageDealer : IComponent
 {
-    public WeaponEffectType EffectType = WeaponEffectType.Bullet;
+    public DamageEffectType EffectType = DamageEffectType.Bullet;
     public int MinTargets = 1;
     public int MaxTargets = 1;
     public int MinHits = 1;
@@ -13,12 +14,12 @@ public struct Weapon
     public float PulseInterval = 0.5f;
     public float PulseDuration = 0.5f;
 
-    public Weapon()
+    public DamageDealer()
     {
     }
 }
 
-public enum WeaponEffectType
+public enum DamageEffectType
 {
     // Hits single target once
     Bullet,

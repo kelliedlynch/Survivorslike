@@ -2,7 +2,6 @@ using System;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended.ECS;
 using Survivorslike.Component;
-using BoundingBox = Survivorslike.Component.BoundingBox;
 
 namespace Survivorslike.Entities;
 
